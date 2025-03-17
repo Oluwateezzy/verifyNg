@@ -2,10 +2,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.database import Base, engine
-from app. import auth
+from app.routers import auth
 
 
-app = FastAPI(title="VerifyNG", version="1.0.0")
+app = FastAPI(title="VerifyNG API", version="1.0.0")
 
 Base.metadata.create_all(bind=engine)
 
@@ -19,4 +19,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth.router)
+app.include_router(auth.router, prefix="/auth", tags=["auth"])
+
+
+@app.get("/")
+def home():
+    return {"message": "Welcome to The VerifyNG API!"}
