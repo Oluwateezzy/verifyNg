@@ -13,3 +13,4 @@ venv/
 
 # Alembic migrations
 alembic/versions/
+alembic.ini
