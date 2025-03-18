@@ -21,7 +21,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    hashed_password: str = Field(title="Hashed Password")
+    password: str = Field(title="Hashed Password")
 
 
 class UserResponse(UserBase):

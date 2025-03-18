@@ -7,8 +7,12 @@ from fastapi import HTTPException, status
 
 
 def create_user(db: Session, user: UserCreate):
-    password_hash = hash_password(user.password)
-    db_user = User(**user.model_dump(), hashed_password=password_hash)
+    print(user)
+    print(user)
+    hashed_password = hash_password(user.password)
+    db_user = User(
+        **user.model_dump(exclude={"password"}), hashed_password=hashed_password
+    )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
