@@ -11,7 +11,7 @@ from jwt.exceptions import InvalidTokenError
 from jwt.exceptions import PyJWTError
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = HTTPBearer()
+jwt_scheme = HTTPBearer()
 
 
 def verify_password(plain_password, hashed_password):
@@ -32,7 +32,7 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
 
 
 def get_current_user(
-    token: HTTPAuthorizationCredentials = Depends(oauth2_scheme),
+    token: HTTPAuthorizationCredentials = Depends(jwt_scheme),
     db: Session = Depends(get_db),
 ):
     credentials_exception = HTTPException(
