@@ -26,6 +26,12 @@ def get_user(db: Session, user_id: UUID):
     return user
 
 
+def get_user_by_email(db: Session, email: str):
+    user = db.query(User).filter(User.email == email).first()
+
+    return user
+
+
 def update_user(db: Session, user_id: UUID, user: UserCreate):
     db_user = get_user(db, user_id)
     db_user.update(user.model_dump())

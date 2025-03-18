@@ -31,3 +31,8 @@ class UserResponse(UserBase):
 
     class Config:
         from_attributes = True
+
+
+class loginDTO(BaseModel):
+    email: EmailStr = Field(title="Email Address")
+    password: constr(min_length=6, max_length=100) = Field(title="Password")
