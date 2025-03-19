@@ -1,17 +1,19 @@
 from uuid import UUID
 from app.core.security import hash_password
 from app.models.users import User
-from app.schemas.user import UserCreate
+from app.schemas.user import UserCreate, UserCreateWithToken
+from app.utils.generate_random_token import generate_random_code
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
 
-def create_user(db: Session, user: UserCreate):
-    print(user)
-    print(user)
+def create_user(db: Session, user: UserCreateWithToken):
     hashed_password = hash_password(user.password)
+    token = generate_random_code(4)
     db_user = User(
-        **user.model_dump(exclude={"password"}), hashed_password=hashed_password
+        **user.model_dump(exclude={"password"}),
+        hashed_password=hashed_password,
+        token=token
     )
     db.add(db_user)
     db.commit()

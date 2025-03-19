@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field, constr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, constr
 from uuid import UUID
 from datetime import datetime
 from typing import Optional, Union
@@ -22,6 +22,10 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str = Field(title="Hashed Password")
+
+
+class UserCreateWithToken(UserCreate):
+    token: str = Field(title="Token")
 
 
 class UserResponse(UserBase):
