@@ -1,13 +1,15 @@
 from datetime import timedelta
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from app.core.security import create_access_token, verify_password
 from app.models.users import User
+from app.services.digital_ocean import upload_file
+from app.services.imgbb import upload_file_imgbb
 from app.utils.result.base_result import BaseResult
 from sqlalchemy.orm import Session
 from app.core.config import settings
 
 from app.core.database import get_db
-from app.schemas.user import UserBase, UserCreate, loginDTO
+from app.schemas.user import EmailDTO, UserBase, UserCreate, loginDTO
 from app.services.user import create_user, get_user_by_email
 from app.utils.validate_email import validate_email
 
@@ -65,13 +67,13 @@ def login(data: loginDTO, db: Session = Depends(get_db)):
 
 
 @router.post("/validateDocs", summary="Validate Documents and return docs URL")
-def validateDocs():
-    return {"message": "Validate Docs"}
-
-
-@router.post("/sendOTP", summary="Send OTP to user")
-def sendOTP():
-    return {"message": "Send OTP"}
+async def validateDocs(file: UploadFile = File(...)):
+    file_s3 = await upload_file_imgbb(file)
+    return BaseResult(
+        status=status.HTTP_200_OK,
+        message="File uploaded successfully",
+        data=file_s3.get("data").get("url"),
+    )
 
 
 @router.post("/verifyOTP", summary="Verify OTP")
@@ -85,5 +87,5 @@ def resetPassword():
 
 
 @router.post("/forgotPassword", summary="Forgot Password")
-def forgotPassword():
+def forgotPassword(data: EmailDTO):
     return {"message": "Forgot Password"}

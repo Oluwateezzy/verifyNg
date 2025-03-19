@@ -26,6 +26,7 @@ class User(Base):
     government_id = Column(String, nullable=True)
     thumb_photo = Column(String, nullable=True)
     hashed_password = Column(String, nullable=False)
+    token = Column(String, nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
