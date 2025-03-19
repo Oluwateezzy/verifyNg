@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     do_spaces_bucket: str
     do_spaces_endpoint: str
     do_spaces_region: str
+    mailtrap_username: str
+    mailtrap_password: str
+    mailtrap_host: str
+    mailtrap_port: int
 
     class Config:
         env_file = ".env"

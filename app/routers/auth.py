@@ -1,15 +1,25 @@
 from datetime import timedelta
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
-from app.core.security import create_access_token, verify_password
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    HTTPException,
+    UploadFile,
+    status,
+)
+from app.core.security import create_access_token, hash_password, verify_password
 from app.models.users import User
 from app.services.digital_ocean import upload_file
+from app.services.email import send_email
 from app.services.imgbb import upload_file_imgbb
+from app.utils.generate_random_token import generate_random_code
 from app.utils.result.base_result import BaseResult
 from sqlalchemy.orm import Session
 from app.core.config import settings
 
 from app.core.database import get_db
-from app.schemas.user import EmailDTO, UserBase, UserCreate, loginDTO
+from app.schemas.user import EmailDTO, ResetPasswordDTO, UserBase, UserCreate, loginDTO
 from app.services.user import create_user, get_user_by_email
 from app.utils.validate_email import validate_email
 
@@ -31,6 +41,12 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
 
     user = create_user(db, data)
     del user.hashed_password
+
+    send_email(
+        to_email=data.email,
+        subject="Welcome to the platform",
+        body=f"Welcome {user.email}, you have successfully registered on the platform. \n {user.token}",
+    )
 
     return BaseResult(
         status=status.HTTP_201_CREATED,
@@ -83,10 +99,46 @@ def verifyOTP():
 
 
 @router.post("/resetPassword", summary="Reset Password")
-def resetPassword():
-    return {"message": "Reset Password"}
+def resetPassword(data: ResetPasswordDTO, db: Session = Depends(get_db)):
+    user = get_user_by_email(db, data.email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="User not found"
+        )
+    if user.token != data.token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token"
+        )
+
+    user.hashed_password = hash_password(data.password)
+    user.token = None
+    db.commit()
+
+    return BaseResult(status=status.HTTP_200_OK, message="Password reset successfully")
 
 
 @router.post("/forgotPassword", summary="Forgot Password")
-def forgotPassword(data: EmailDTO):
-    return {"message": "Forgot Password"}
+def forgotPassword(
+    data: EmailDTO, background_tasks: BackgroundTasks, db: Session = Depends(get_db)
+):
+    user = get_user_by_email(db, data.email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="User not found"
+        )
+
+    token = generate_random_code(4)
+    user.token = token
+    db.commit()
+
+    # Send email in the background
+    background_tasks.add_task(
+        send_email,
+        data.email,
+        "Reset Password",
+        f"Your reset password token is {token}",
+    )
+
+    return BaseResult(
+        status=status.HTTP_200_OK, message="Reset password token sent successfully"
+    )
