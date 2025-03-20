@@ -18,7 +18,7 @@ def profile(current_user: User = Depends(get_current_user)):
     )
 
 
-@router.post("/updatePassword", summary="Update user password")
+@router.patch("/updatePassword", summary="Update user password")
 def updatePassword(
     data: PasswordDTO,
     db=Depends(get_db),
@@ -38,7 +38,7 @@ def updatePassword(
     return BaseResult(status=status.HTTP_400_BAD_REQUEST, message="Incorrect password")
 
 
-@router.post("/updateProfile", summary="Update user profile")
+@router.patch("/updateProfile", summary="Update user profile")
 def updateProfile(
     data: UserBaseUpdate,
     db=Depends(get_db),
@@ -55,7 +55,7 @@ def updateProfile(
     )
 
 
-@router.post("/deleteAccount", summary="Delete user account")
+@router.delete("/deleteAccount", summary="Delete user account")
 def deleteAccount(db=Depends(get_db), current_user: User = Depends(get_current_user)):
     userData = get_user(db, current_user.id)
 
