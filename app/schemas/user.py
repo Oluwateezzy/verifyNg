@@ -20,7 +20,7 @@ class UserBase(BaseModel):
     thumb_photo: Optional[str] = Field(title="Thumb Photo")
 
 
-class UserBaseUpdate(UserBase):
+class UserBaseUpdate(BaseModel):
     email: Optional[EmailStr] = Field(title="Email Address")
     first_name: Optional[str] = Field(title="First Name")
     last_name: Optional[str] = Field(title="Last Name")
