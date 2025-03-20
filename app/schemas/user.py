@@ -21,11 +21,9 @@ class UserBase(BaseModel):
 
 
 class UserBaseUpdate(BaseModel):
-    email: Optional[EmailStr] = Field(title="Email Address")
     first_name: Optional[str] = Field(title="First Name")
     last_name: Optional[str] = Field(title="Last Name")
     middle_name: Optional[Union[str, None]] = Field(title="Middle Name")
-    nin: Optional[str] = Field(title="National Identification Number")
 
 
 class UserCreate(UserBase):
