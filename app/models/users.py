@@ -27,6 +27,8 @@ class User(Base):
     thumb_photo = Column(String, nullable=True)
     hashed_password = Column(String, nullable=False)
     token = Column(String, nullable=True)
+    is_email_verified = Column(Boolean, default=False)
+    is_phone_verified = Column(Boolean, default=False)
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

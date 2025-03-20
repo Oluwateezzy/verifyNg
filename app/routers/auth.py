@@ -21,6 +21,7 @@ from app.core.config import settings
 from app.core.database import get_db
 from app.schemas.user import (
     EmailDTO,
+    PhoneNumberDTO,
     ResetPasswordDTO,
     UserBase,
     UserCreate,
@@ -100,7 +101,7 @@ async def validateDocs(file: UploadFile = File(...)):
     )
 
 
-@router.post("/sendOTP", summary="Send OTP")
+@router.post("/sendEmailToken", summary="Send Email Token")
 def sendOTP(data: EmailDTO, db: Session = Depends(get_db)):
     user = get_user_by_email(db, data.email)
     if not user:
@@ -121,8 +122,29 @@ def sendOTP(data: EmailDTO, db: Session = Depends(get_db)):
     return BaseResult(status=status.HTTP_200_OK, message="OTP sent successfully")
 
 
-@router.post("/verifyOTP", summary="Verify OTP")
-def verifyOTP(data: VerifyTokenDTO, db: Session = Depends(get_db)):
+@router.post("/sendPhoneNumber", summary="Send Phone Token")
+def sendOTP(data: PhoneNumberDTO, db: Session = Depends(get_db)):
+    user = get_user_by_email(db, data.email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="User not found"
+        )
+
+    token = generate_random_code(4)
+    user.token = token
+    db.commit()
+
+    send_email(
+        to_email=data.email,
+        subject="OTP",
+        body=f"Your OTP is {token}",
+    )
+
+    return BaseResult(status=status.HTTP_200_OK, message="OTP sent successfully")
+
+
+@router.post("/verifyEmail", summary="Verify Email")
+def verifyEmail(data: VerifyTokenDTO, db: Session = Depends(get_db)):
     user = get_user_by_email(db, data.email)
     if not user:
         raise HTTPException(
@@ -133,7 +155,30 @@ def verifyOTP(data: VerifyTokenDTO, db: Session = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token"
         )
 
-    return BaseResult(status=status.HTTP_200_OK, message="Token verified successfully")
+    user.is_email_verified = True
+    user.token = None
+    db.commit()
+
+    return BaseResult(status=status.HTTP_200_OK, message="Email verified successfully")
+
+
+@router.post("/verifyPhoneNumber", summary="Verify Phone Number")
+def verifyPhoneNumber(data: VerifyTokenDTO, db: Session = Depends(get_db)):
+    user = get_user_by_email(db, data.email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="User not found"
+        )
+    if user.token != data.token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token"
+        )
+
+    user.is_phone_verified = True
+    user.token = None
+    db.commit()
+
+    return BaseResult(status=status.HTTP_200_OK, message="Email verified successfully")
 
 
 @router.patch("/resetPassword", summary="Reset Password")

@@ -46,6 +46,10 @@ class EmailDTO(BaseModel):
     email: EmailStr = Field(title="Email Address")
 
 
+class PhoneNumberDTO(BaseModel):
+    phone_number: str = Field(title="Phone Number")
+
+
 class ResetPasswordDTO(BaseModel):
     email: EmailStr = Field(title="Email Address")
     token: str = Field(title="Token")
