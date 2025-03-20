@@ -50,3 +50,13 @@ class ResetPasswordDTO(BaseModel):
     email: EmailStr = Field(title="Email Address")
     token: str = Field(title="Token")
     password: constr(min_length=6, max_length=100) = Field(title="Password")
+
+
+class VerifyTokenDTO(BaseModel):
+    token: str = Field(title="Token")
+    email: EmailStr = Field(title="Email Address")
+
+
+class PasswordDTO(BaseModel):
+    old_password: constr(min_length=6, max_length=100) = Field(title="Old Password")
+    new_password: constr(min_length=6, max_length=100) = Field(title="New Password")

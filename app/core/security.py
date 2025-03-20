@@ -4,6 +4,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from passlib.context import CryptContext
 from app.core.config import settings
 from app.core.database import get_db
+from app.schemas.user import UserBase, UserResponse
 import jwt
 from app.models.users import User
 from sqlalchemy.orm import Session
@@ -34,7 +35,7 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
 def get_current_user(
     token: HTTPAuthorizationCredentials = Depends(jwt_scheme),
     db: Session = Depends(get_db),
-):
+) -> UserBase:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -56,4 +57,4 @@ def get_current_user(
     user = db.query(User).filter(User.email == email).first()
     if not user:
         raise credentials_exception
-    return user
+    return UserResponse.model_validate(user)

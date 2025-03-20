@@ -19,7 +19,14 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 
 from app.core.database import get_db
-from app.schemas.user import EmailDTO, ResetPasswordDTO, UserBase, UserCreate, loginDTO
+from app.schemas.user import (
+    EmailDTO,
+    ResetPasswordDTO,
+    UserBase,
+    UserCreate,
+    VerifyTokenDTO,
+    loginDTO,
+)
 from app.services.user import create_user, get_user_by_email
 from app.utils.validate_email import validate_email
 
@@ -93,12 +100,43 @@ async def validateDocs(file: UploadFile = File(...)):
     )
 
 
+@router.post("/sendOTP", summary="Send OTP")
+def sendOTP(data: EmailDTO, db: Session = Depends(get_db)):
+    user = get_user_by_email(db, data.email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="User not found"
+        )
+
+    token = generate_random_code(4)
+    user.token = token
+    db.commit()
+
+    send_email(
+        to_email=data.email,
+        subject="OTP",
+        body=f"Your OTP is {token}",
+    )
+
+    return BaseResult(status=status.HTTP_200_OK, message="OTP sent successfully")
+
+
 @router.post("/verifyOTP", summary="Verify OTP")
-def verifyOTP():
-    return {"message": "Verify OTP"}
+def verifyOTP(data: VerifyTokenDTO, db: Session = Depends(get_db)):
+    user = get_user_by_email(db, data.email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="User not found"
+        )
+    if user.token != data.token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token"
+        )
+
+    return BaseResult(status=status.HTTP_200_OK, message="Token verified successfully")
 
 
-@router.post("/resetPassword", summary="Reset Password")
+@router.patch("/resetPassword", summary="Reset Password")
 def resetPassword(data: ResetPasswordDTO, db: Session = Depends(get_db)):
     user = get_user_by_email(db, data.email)
     if not user:
