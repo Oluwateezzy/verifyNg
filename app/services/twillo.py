@@ -4,12 +4,18 @@ from app.core.config import settings
 client = Client(settings.twilio_account_sid, settings.twilio_auth_token)
 
 
-def send_otp(phone_number: str):
+def send_otp(phone_number: str, otp_code: str):
     """Send a One-Time Password (OTP) to the user's phone."""
-    verification = client.verify.v2.services(
-        settings.twilio_account_sid
-    ).verifications.create(to=phone_number, channel="sms")
-    return verification.status
+    message = client.messages.create(
+        body=f"Your OTP is {otp_code}",
+        from_=settings.twilio_phone_number,
+        to=phone_number,
+    )
+    return message.sid
+    # verification = client.verify.v2.services(
+    #     settings.twilio_account_sid
+    # ).verifications.create(to=phone_number, channel="sms")
+    # return verification.status
 
 
 def verify_otp(phone_number: str, otp_code: str):

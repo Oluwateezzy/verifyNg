@@ -13,6 +13,7 @@ from app.models.users import User
 from app.services.digital_ocean import upload_file
 from app.services.email import send_email
 from app.services.imgbb import upload_file_imgbb
+from app.services.twillo import send_otp
 from app.utils.generate_random_token import generate_random_code
 from app.utils.result.base_result import BaseResult
 from sqlalchemy.orm import Session
@@ -103,7 +104,7 @@ async def validateDocs(file: UploadFile = File(...)):
 
 
 @router.post("/sendEmailToken", summary="Send Email Token")
-def sendOTP(
+def sendEmailToken(
     data: EmailDTO, background_tasks: BackgroundTasks, db: Session = Depends(get_db)
 ):
     user = get_user_by_email(db, data.email)
@@ -127,7 +128,7 @@ def sendOTP(
 
 
 @router.post("/sendPhoneNumber", summary="Send Phone Token")
-def sendOTP(
+def sendPhoneNumber(
     data: PhoneNumberDTO,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
@@ -142,12 +143,7 @@ def sendOTP(
     user.token = token
     db.commit()
 
-    background_tasks.add_task(
-        send_email,
-        data.email,
-        "OTP",
-        f"Your OTP is {token}",
-    )
+    # background_tasks.add_task(send_otp, data.phone_number, token)
 
     return BaseResult(status=status.HTTP_200_OK, message="OTP sent successfully")
 
