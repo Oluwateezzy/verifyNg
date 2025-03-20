@@ -23,12 +23,12 @@ from app.schemas.user import (
     EmailDTO,
     PhoneNumberDTO,
     ResetPasswordDTO,
-    UserBase,
     UserCreate,
-    VerifyTokenDTO,
+    VerifyEmailTokenDTO,
+    VerifyPhoneNumberTokenDTO,
     loginDTO,
 )
-from app.services.user import create_user, get_user_by_email
+from app.services.user import create_user, get_user_by_email, get_user_by_phone_number
 from app.utils.validate_email import validate_email
 
 
@@ -37,6 +37,7 @@ router = APIRouter()
 
 @router.post("/register", summary="Register a new user")
 def register(data: UserCreate, db: Session = Depends(get_db)):
+
     if not validate_email(data.email):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid email address"
@@ -102,7 +103,9 @@ async def validateDocs(file: UploadFile = File(...)):
 
 
 @router.post("/sendEmailToken", summary="Send Email Token")
-def sendOTP(data: EmailDTO, db: Session = Depends(get_db)):
+def sendOTP(
+    data: EmailDTO, background_tasks: BackgroundTasks, db: Session = Depends(get_db)
+):
     user = get_user_by_email(db, data.email)
     if not user:
         raise HTTPException(
@@ -113,18 +116,23 @@ def sendOTP(data: EmailDTO, db: Session = Depends(get_db)):
     user.token = token
     db.commit()
 
-    send_email(
-        to_email=data.email,
-        subject="OTP",
-        body=f"Your OTP is {token}",
+    background_tasks.add_task(
+        send_email,
+        data.email,
+        "OTP",
+        f"Your OTP is {token}",
     )
 
     return BaseResult(status=status.HTTP_200_OK, message="OTP sent successfully")
 
 
 @router.post("/sendPhoneNumber", summary="Send Phone Token")
-def sendOTP(data: PhoneNumberDTO, db: Session = Depends(get_db)):
-    user = get_user_by_email(db, data.email)
+def sendOTP(
+    data: PhoneNumberDTO,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
+    user = get_user_by_phone_number(db, data.phone_number)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="User not found"
@@ -134,17 +142,18 @@ def sendOTP(data: PhoneNumberDTO, db: Session = Depends(get_db)):
     user.token = token
     db.commit()
 
-    send_email(
-        to_email=data.email,
-        subject="OTP",
-        body=f"Your OTP is {token}",
+    background_tasks.add_task(
+        send_email,
+        data.email,
+        "OTP",
+        f"Your OTP is {token}",
     )
 
     return BaseResult(status=status.HTTP_200_OK, message="OTP sent successfully")
 
 
 @router.post("/verifyEmail", summary="Verify Email")
-def verifyEmail(data: VerifyTokenDTO, db: Session = Depends(get_db)):
+def verifyEmail(data: VerifyEmailTokenDTO, db: Session = Depends(get_db)):
     user = get_user_by_email(db, data.email)
     if not user:
         raise HTTPException(
@@ -155,6 +164,11 @@ def verifyEmail(data: VerifyTokenDTO, db: Session = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token"
         )
 
+    if user.is_email_verified:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already verified"
+        )
+
     user.is_email_verified = True
     user.token = None
     db.commit()
@@ -163,12 +177,19 @@ def verifyEmail(data: VerifyTokenDTO, db: Session = Depends(get_db)):
 
 
 @router.post("/verifyPhoneNumber", summary="Verify Phone Number")
-def verifyPhoneNumber(data: VerifyTokenDTO, db: Session = Depends(get_db)):
-    user = get_user_by_email(db, data.email)
+def verifyPhoneNumber(data: VerifyPhoneNumberTokenDTO, db: Session = Depends(get_db)):
+    user = get_user_by_phone_number(db, data.phone_number)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="User not found"
         )
+
+    if user.is_phone_verified:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Phone number already verified",
+        )
+
     if user.token != data.token:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token"

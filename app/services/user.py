@@ -38,6 +38,12 @@ def get_user_by_email(db: Session, email: str):
     return user
 
 
+def get_user_by_phone_number(db: Session, phoneNumber: str):
+    user = db.query(User).filter(User.phone_number == phoneNumber).first()
+
+    return user
+
+
 def update_user(db: Session, user_id: UUID, user: UserCreate):
     db_user = get_user(db, user_id)
     db_user.update(user.model_dump())

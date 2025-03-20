@@ -56,9 +56,14 @@ class ResetPasswordDTO(BaseModel):
     password: constr(min_length=6, max_length=100) = Field(title="Password")
 
 
-class VerifyTokenDTO(BaseModel):
+class VerifyEmailTokenDTO(BaseModel):
     token: str = Field(title="Token")
     email: EmailStr = Field(title="Email Address")
+
+
+class VerifyPhoneNumberTokenDTO(BaseModel):
+    token: str = Field(title="Token")
+    phone_number: EmailStr = Field(title="Email Address")
 
 
 class PasswordDTO(BaseModel):
