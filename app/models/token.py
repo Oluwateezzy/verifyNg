@@ -2,7 +2,7 @@ from datetime import datetime
 import uuid
 from app.core.database import Base
 from app.utils.enums.token import TokenType
-from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Enum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -18,7 +18,7 @@ class Token(Base):
         index=True,
     )
     token = Column(String, index=True, nullable=False)
-    type = Column(TokenType, nullable=False)
+    type = Column(Enum(TokenType), nullable=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

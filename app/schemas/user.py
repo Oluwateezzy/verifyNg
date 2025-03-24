@@ -30,10 +30,6 @@ class UserCreate(UserBase):
     password: str = Field(title="Hashed Password")
 
 
-class UserCreateWithToken(UserCreate):
-    token: str = Field(title="Token")
-
-
 class UserResponse(UserBase):
     id: UUID
     created_at: datetime

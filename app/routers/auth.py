@@ -49,19 +49,19 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists"
         )
 
-    user = create_user(db, data)
-    del user.hashed_password
+    db_user, new_token = create_user(db, data)
+    del db_user.hashed_password
 
     send_email(
         to_email=data.email,
         subject="Welcome to the platform",
-        body=f"Welcome {user.email}, you have successfully registered on the platform. \n {user.token}",
+        body=f"Welcome {db_user.email}, you have successfully registered on the platform. \n {new_token.token}",
     )
 
     return BaseResult(
         status=status.HTTP_201_CREATED,
         message="User created successfully",
-        data=user,
+        data={"token": new_token.token},
     )
 
 

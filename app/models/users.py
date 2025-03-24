@@ -30,7 +30,7 @@ class User(Base):
     is_email_verified = Column(Boolean, default=False)
     is_phone_verified = Column(Boolean, default=False)
 
-    tokens = relationship("Token", back_populates="user", cascade="all, delete-orphan")
+    tokens = relationship("Token", back_populates="user", cascade="all, delete")
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
