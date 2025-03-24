@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, Boolean, DateTime
 from app.core.database import Base
+from sqlalchemy.orm import relationship
 
 
 class User(Base):
@@ -26,9 +27,10 @@ class User(Base):
     government_id = Column(String, nullable=True)
     thumb_photo = Column(String, nullable=True)
     hashed_password = Column(String, nullable=False)
-    token = Column(String, nullable=True)
     is_email_verified = Column(Boolean, default=False)
     is_phone_verified = Column(Boolean, default=False)
+
+    tokens = relationship("Token", back_populates="user", cascade="all, delete-orphan")
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
