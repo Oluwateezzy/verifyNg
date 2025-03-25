@@ -40,6 +40,9 @@ router = APIRouter()
 
 @router.post("/register", summary="Register a new user account")
 def register(data: UserCreate, db: Session = Depends(get_db)):
+    """
+    Registers a new user account by validating the provided email, checking if the email already exists, and creating a new user. Upon successful registration, a welcome email with a generated token is sent to the user.
+    """
 
     if not validate_email(data.email):
         raise HTTPException(
@@ -69,6 +72,9 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login", summary="Authenticate a user and generate an access token")
 def login(data: loginDTO, db: Session = Depends(get_db)):
+    """
+    Authenticates a user using their email and password, and generates an access token upon successful login.
+    """
     if not validate_email(data.email):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid email address"
@@ -99,6 +105,9 @@ def login(data: loginDTO, db: Session = Depends(get_db)):
     "/documents/validate", summary="Validate uploaded documents and return their URLs"
 )
 async def validateDocs(file: UploadFile = File(...)):
+    """
+    Validates the uploaded document and returns its URL after uploading to an external service (e.g., ImgBB).
+    """
     file_s3 = await upload_file_imgbb(file)
     return BaseResult(
         status=status.HTTP_200_OK,
@@ -113,6 +122,9 @@ async def validateDocs(file: UploadFile = File(...)):
 def sendEmailToken(
     data: EmailDTO, background_tasks: BackgroundTasks, db: Session = Depends(get_db)
 ):
+    """
+    Sends an email verification token (OTP) to the user's email address for verification purposes.
+    """
     user = get_user_by_email(db, data.email)
     if not user:
         raise HTTPException(
@@ -141,6 +153,9 @@ def sendPhoneNumber(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
+    """
+    Summary: Sends an SMS verification token (OTP) to the user's phone number for verification purposes.
+    """
     user = get_user_by_phone_number(db, data.phone_number)
     if not user:
         raise HTTPException(
@@ -161,6 +176,9 @@ def sendPhoneNumber(
     "/email/verify", summary="Verify a user's email using a confirmation token"
 )
 def verifyEmail(data: VerifyEmailTokenDTO, db: Session = Depends(get_db)):
+    """
+    Verifies the user's email address using the provided confirmation token.
+    """
     user = get_user_by_email(db, data.email)
     if not user:
         raise HTTPException(
@@ -197,6 +215,9 @@ def verifyEmail(data: VerifyEmailTokenDTO, db: Session = Depends(get_db)):
 
 @router.post("/phone/verify", summary="Verify a user's phone number using an OTP")
 def verifyPhoneNumber(data: VerifyPhoneNumberTokenDTO, db: Session = Depends(get_db)):
+    """
+    Verifies the user's phone number using the provided OTP token.
+    """
     user = get_user_by_phone_number(db, data.phone_number)
     if not user:
         raise HTTPException(
@@ -213,7 +234,7 @@ def verifyPhoneNumber(data: VerifyPhoneNumberTokenDTO, db: Session = Depends(get
 
     if (
         not token
-        or token.type != TokenType.EMAIL_CONFIRMATION
+        or token.type != TokenType.PHONE_NUMBER_CONFIRMATION
         or token.is_active is False
     ):
         raise HTTPException(
@@ -237,6 +258,9 @@ def verifyPhoneNumber(data: VerifyPhoneNumberTokenDTO, db: Session = Depends(get
     "/password/reset", summary="Reset the user's password using a valid token"
 )
 def resetPassword(data: ResetPasswordDTO, db: Session = Depends(get_db)):
+    """
+    Resets the user's password using the provided reset token.
+    """
     user = get_user_by_email(db, data.email)
     if not user:
         raise HTTPException(
@@ -249,11 +273,7 @@ def resetPassword(data: ResetPasswordDTO, db: Session = Depends(get_db)):
 
     token = get_token(db, data.token)
 
-    if (
-        not token
-        or token.type != TokenType.EMAIL_CONFIRMATION
-        or token.is_active is False
-    ):
+    if not token or token.type != TokenType.PASSWORD_RESET or token.is_active is False:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token"
         )
@@ -278,6 +298,9 @@ def resetPassword(data: ResetPasswordDTO, db: Session = Depends(get_db)):
 def forgotPassword(
     data: EmailDTO, background_tasks: BackgroundTasks, db: Session = Depends(get_db)
 ):
+    """
+    Initiates a password reset by sending a recovery email with a token to the user's email address.
+    """
     user = get_user_by_email(db, data.email)
     if not user:
         raise HTTPException(
@@ -285,7 +308,7 @@ def forgotPassword(
         )
 
     token = generate_random_code(4)
-    create_token(db, TokenDTO(token=token, type=TokenType.EMAIL_CONFIRMATION), user.id)
+    create_token(db, TokenDTO(token=token, type=TokenType.PASSWORD_RESET), user.id)
 
     db.commit()
 
