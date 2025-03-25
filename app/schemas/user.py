@@ -15,9 +15,15 @@ class UserBase(BaseModel):
     phone_number: Union[str, None] = Field(title="Phone Number")
     nin: str = Field(title="National Identification Number")
     is_identical: bool = Field(title="Is Identical")
-    photo_image: Optional[str] = Field(title="Photo Image")
-    government_id: Optional[str] = Field(title="Government ID")
-    thumb_photo: Optional[str] = Field(title="Thumb Photo")
+    photo_image: Optional[str] = Field(
+        title="Photo Image URL", examples=["http://example.com/photo.jpg"]
+    )
+    government_id: Optional[str] = Field(
+        title="Government ID URL", examples=["http://example.com/government_id.jpg"]
+    )
+    thumb_photo: Optional[str] = Field(
+        title="Thumb Photo", examples=["http://example.com/thumb_photo.jpg"]
+    )
 
 
 class UserBaseUpdate(BaseModel):
