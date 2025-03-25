@@ -32,6 +32,7 @@ passlib==1.7.4
 propcache==0.2.0
 psycopg2==2.9.10
 psycopg2-binary==2.9.10
+pycryptodome==3.22.0
 pydantic==2.10.6
 pydantic-settings==2.8.1
 pydantic_core==2.27.2
