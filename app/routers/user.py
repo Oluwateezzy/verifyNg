@@ -13,6 +13,9 @@ router = APIRouter()
 
 @router.get("/profile", summary="Retrieve the authenticated user's profile")
 def profile(current_user: User = Depends(get_current_user)):
+    """
+    Retrieves the profile information of the authenticated user.
+    """
     return BaseResult(
         status=status.HTTP_200_OK, message="User profile", data=current_user
     )
@@ -24,6 +27,9 @@ def updatePassword(
     db=Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """
+    Updates the password of the authenticated user.
+    """
     userData = get_user(db, current_user.id)
 
     if verify_password(data.old_password, userData.hashed_password):
@@ -44,6 +50,9 @@ def updateProfile(
     db=Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """
+    Updates the profile information (e.g., name, email, etc.) of the authenticated user.
+    """
     userData = get_user(db, current_user.id)
 
     userData.update(data.dict(exclude_none=True))
@@ -59,6 +68,9 @@ def updateProfile(
     "/account", summary="Permanently delete the authenticated user's account"
 )
 def deleteAccount(db=Depends(get_db), current_user: User = Depends(get_current_user)):
+    """
+    Permanently deletes the authenticated user's account.
+    """
     userData = get_user(db, current_user.id)
 
     db.delete(userData)
