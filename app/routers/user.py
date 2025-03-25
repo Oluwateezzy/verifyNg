@@ -11,14 +11,14 @@ from app.utils.result.base_result import BaseResult
 router = APIRouter()
 
 
-@router.get("/profile", summary="Get user profile")
+@router.get("/profile", summary="Retrieve the authenticated user's profile")
 def profile(current_user: User = Depends(get_current_user)):
     return BaseResult(
         status=status.HTTP_200_OK, message="User profile", data=current_user
     )
 
 
-@router.patch("/updatePassword", summary="Update user password")
+@router.patch("/password", summary="Update the authenticated user's password")
 def updatePassword(
     data: PasswordDTO,
     db=Depends(get_db),
@@ -38,7 +38,7 @@ def updatePassword(
     return BaseResult(status=status.HTTP_400_BAD_REQUEST, message="Incorrect password")
 
 
-@router.patch("/updateProfile", summary="Update user profile")
+@router.patch("/profile", summary="Update the authenticated user's profile information")
 def updateProfile(
     data: UserBaseUpdate,
     db=Depends(get_db),
@@ -55,7 +55,9 @@ def updateProfile(
     )
 
 
-@router.delete("/deleteAccount", summary="Delete user account")
+@router.delete(
+    "/account", summary="Permanently delete the authenticated user's account"
+)
 def deleteAccount(db=Depends(get_db), current_user: User = Depends(get_current_user)):
     userData = get_user(db, current_user.id)
 
