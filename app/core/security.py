@@ -57,7 +57,6 @@ def get_current_user(
         payload = jwt.decode(
             bearer_token, settings.secret_key, algorithms=[settings.algorithm]
         )
-        print(payload)
         email: str = payload.get("sub")
         if not email:
             raise credentials_exception
