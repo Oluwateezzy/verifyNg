@@ -4,6 +4,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from passlib.context import CryptContext
 from app.core.config import settings
 from app.core.database import get_db
+from app.core.encryptor import Encryptor
 from app.schemas.user import UserBase, UserResponse
 import jwt
 from app.models.users import User
@@ -13,6 +14,8 @@ from jwt.exceptions import PyJWTError
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 jwt_scheme = HTTPBearer()
+
+encryption = Encryptor()
 
 
 def verify_password(plain_password, hashed_password):
@@ -29,7 +32,13 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
         expires_delta or timedelta(minutes=settings.access_token_expire_minutes)
     )
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
+    access_token = jwt.encode(
+        to_encode, settings.secret_key, algorithm=settings.algorithm
+    )
+
+    encrypted_access_token = encryption.encrypt(access_token)
+
+    return encrypted_access_token
 
 
 def get_current_user(
@@ -42,12 +51,13 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    bearer_token = token.credentials
+    bearer_token = encryption.decrypt(token.credentials)
 
     try:
         payload = jwt.decode(
             bearer_token, settings.secret_key, algorithms=[settings.algorithm]
         )
+        print(payload)
         email: str = payload.get("sub")
         if not email:
             raise credentials_exception

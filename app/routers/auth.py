@@ -9,9 +9,7 @@ from fastapi import (
     status,
 )
 from app.core.security import create_access_token, hash_password, verify_password
-from app.models.users import User
 from app.schemas.token import TokenDTO
-from app.services.digital_ocean import upload_file
 from app.services.email import send_email
 from app.services.imgbb import upload_file_imgbb
 from app.services.token import create_token, get_token
