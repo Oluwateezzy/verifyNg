@@ -65,3 +65,7 @@ Start FastAPI with Uvicorn:
 ```sh
 uvicorn app.main:app --reload
 ```
+Start FastAPI with Docker:
+```sh
+docker-compose up --build -d
+```
