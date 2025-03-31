@@ -1,5 +1,8 @@
 # Use official Python image
-FROM python:3.10
+FROM python:3.8.0
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y libsndfile1
 
 # Set working directory
 WORKDIR /app

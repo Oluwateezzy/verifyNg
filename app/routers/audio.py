@@ -20,7 +20,7 @@ router = APIRouter()
 MAX_FILE_SIZE = 10 * 1024 * 1024
 
 
-@router.post("/audio/verify", summary="Verify an audio file with")
+@router.post("/verify", summary="Verify an audio file with")
 async def verify_audio(backgroundTask: BackgroundTasks, file: UploadFile = File(...)):
     audio_bytes = await file.read()
     audio_data, sample_rate = sf.read(io.BytesIO(audio_bytes))
@@ -28,9 +28,9 @@ async def verify_audio(backgroundTask: BackgroundTasks, file: UploadFile = File(
     # Calculate duration
     duration = len(audio_data) / sample_rate
 
-    if duration < 3 or duration > 5:
+    if duration > 5:
         raise HTTPException(
-            status_code=400, detail="Audio file must be between 3 and 5 seconds"
+            status_code=400, detail="Audio file must be less than 5 seconds"
         )
 
     # Generate a unique task ID
@@ -44,7 +44,7 @@ async def verify_audio(backgroundTask: BackgroundTasks, file: UploadFile = File(
     )
 
 
-@router.get("/audio/status/{task_id}")
+@router.get("/status/{task_id}")
 async def get_audio_status(task_id: str):
     """Fetches the processing status."""
 

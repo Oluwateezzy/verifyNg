@@ -79,9 +79,9 @@ threadpoolctl==3.5.0
 twilio==9.5.0
 typing_extensions==4.12.2
 tzdata
-urllib3==1.26.20
-uvicorn==0.33.0
-vine==5.1.0
-wcwidth==0.2.13
-yarl==1.15.2
-zipp==3.20.2
+urllib3
+uvicorn
+vine
+wcwidth
+yarl
+zipp
