@@ -48,6 +48,8 @@ MAILTRAP_PORT=2525
 TWILIO_ACCOUNT_SID=your_twilio_account_sid
 TWILIO_AUTH_TOKEN=your_twilio_auth_token
 TWILIO_PHONE_NUMBER=your_twilio_phone_number
+ENCRYPTOR_SECRET_KEY=
+REDIS_URL=
 ```
 
 ## Step 4: Run Database Migrations
