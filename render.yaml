@@ -26,5 +26,4 @@ services:
     plan: free
     env: docker
     dockerfilePath: Dockerfile.worker
-    startCommand: "celery -A app.worker.celery_app worker --loglevel=info"
     autoDeploy: true
