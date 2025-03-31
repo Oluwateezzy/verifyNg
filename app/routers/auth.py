@@ -105,9 +105,11 @@ def login(data: loginDTO, db: Session = Depends(get_db)):
     "/documents/validate", summary="Validate uploaded documents and return their URLs"
 )
 async def validateDocs(file: UploadFile = File(...)):
+
     """
     Validates the uploaded document and returns its URL after uploading to an external service (e.g., ImgBB).
     """
+
     file_s3 = await upload_file_imgbb(file)
     return BaseResult(
         status=status.HTTP_200_OK,

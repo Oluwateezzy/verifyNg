@@ -5,9 +5,7 @@ from fastapi import (
     File,
     HTTPException,
     UploadFile,
-    requests,
     status,
-    BackgroundTasks,
 )
 from pydantic import Field
 from app.utils.result.base_result import BaseResult
