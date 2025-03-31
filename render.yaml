@@ -15,7 +15,7 @@ services:
     autoDeploy: true
 
   - name: verifyNg-worker
-    type: background
+    type: worker
     runtime: docker
     repo: https://github.com/Oluwateezzy/verifyNg
     envVars:

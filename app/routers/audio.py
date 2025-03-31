@@ -19,15 +19,19 @@ router = APIRouter()
 
 MAX_FILE_SIZE = 10 * 1024 * 1024
 
+"""
+    Endpoint to verify an uploaded audio file.
+        - Ensures the file is an audio type.
+        - Only allows .wav files.
+        - Checks if the duration is within the allowed limit (5 seconds).
+        - Sends the file to a Celery queue for processing.
+"""
+
 
 @router.post("/verify", summary="Verify an audio file")
 async def verify_audio(file: UploadFile = File(...)):
     """
     Endpoint to verify an uploaded audio file.
-    - Ensures the file is an audio type.
-    - Only allows .wav files.
-    - Checks if the duration is within the allowed limit (5 seconds).
-    - Sends the file to a Celery queue for processing.
     """
 
     if file.content_type.split("/")[0] != "audio":
@@ -61,13 +65,18 @@ async def verify_audio(file: UploadFile = File(...)):
     )
 
 
+"""
+Fetches the processing status of an audio verification task.
+    - Checks the current state of the Celery task.
+    - Returns the status and result if completed.
+    - Returns an error message if the task fails.
+"""
+
+
 @router.get("/status/{task_id}")
 async def get_audio_status(task_id: str):
     """
     Fetches the processing status of an audio verification task.
-    - Checks the current state of the Celery task.
-    - Returns the status and result if completed.
-    - Returns an error message if the task fails.
     """
 
     task_result = AsyncResult(task_id)
