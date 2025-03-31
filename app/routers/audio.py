@@ -1,5 +1,4 @@
 import io
-from typing import Any, Dict
 import uuid
 from fastapi import (
     APIRouter,
@@ -9,14 +8,12 @@ from fastapi import (
     UploadFile,
     status,
 )
-from pydantic import BaseModel, Field
 from app.utils.result.base_result import BaseResult
 import soundfile as sf
 from app.worker import (
     process_audio_background,
     process_audio_task,
     task_store,
-    TaskResult,
 )
 from celery.result import AsyncResult
 
@@ -26,14 +23,17 @@ router = APIRouter()
 MAX_FILE_SIZE = 10 * 1024 * 1024
 
 
-@router.post("/test/upload-audio", summary="Verify an audio file using in-memory")
+@router.post(
+    "/test/upload-audio", summary="Verify an audio file of type wav using in-memory"
+)
 async def upload_audio(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
-    if file.content_type.split("/")[0] != "audio":
+    file_content = file.content_type.split("/")
+    if file_content[0] != "audio":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Not an audio file"
         )
 
-    if file.content_type.split("/")[1] != "wav":
+    if file_content[1] != "wav":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Accepted Audio Type - .wav"
         )
@@ -103,7 +103,9 @@ async def get_audio_status(task_id: str):
     )
 
 
-@router.post("/upload-audio", summary="Verify an audio file using celery and redis")
+@router.post(
+    "/upload-audio", summary="Verify an audio file of type wav using celery and redis"
+)
 async def verify_audio(file: UploadFile = File(...)):
 
     if file.content_type.split("/")[0] != "audio":
