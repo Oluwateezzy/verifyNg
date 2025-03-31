@@ -28,10 +28,10 @@ async def verify_audio(backgroundTask: BackgroundTasks, file: UploadFile = File(
     # Calculate duration
     duration = len(audio_data) / sample_rate
 
-    # if duration < 3 or duration > 5:
-    #     raise HTTPException(
-    #         status_code=400, detail="Audio file must be between 3 and 5 seconds"
-    #     )
+    if duration < 3 or duration > 5:
+        raise HTTPException(
+            status_code=400, detail="Audio file must be between 3 and 5 seconds"
+        )
 
     # Generate a unique task ID
     task_id = str(uuid.uuid4())
