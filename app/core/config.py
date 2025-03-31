@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     twilio_auth_token: str
     twilio_phone_number: str
     encryptor_secret_key: str
+    redis_url: str
 
     class Config:
         env_file = ".env"

@@ -323,28 +323,3 @@ def forgotPassword(
     return BaseResult(
         status=status.HTTP_200_OK, message="Reset password token sent successfully"
     )
-
-
-@router.post("/audio/verify", summary="Verify an audio file with an external service")
-async def verify_audio(file: UploadFile = File(...)):
-    """
-    Accepts an audio file, sends it to an external verification API,
-    and returns the verification result.
-    """
-
-    # Read file content
-    file_bytes = await file.read()
-
-    # Prepare the request payload
-    files = {"file": (file.filename, file_bytes, file.content_type)}
-
-    try:
-        # Send to external API
-        # response = requests.post(EXTERNAL_API_URL, files=files)
-        # response.raise_for_status()  # Raise error if request failed
-        return BaseResult(status=status.HTTP_200_OK, message="Success")
-    except requests.RequestException as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error communicating with external API: {str(e)}",
-        )
