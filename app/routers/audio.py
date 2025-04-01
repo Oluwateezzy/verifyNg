@@ -1,5 +1,6 @@
 import io
 import uuid
+import concurrent
 from fastapi import (
     APIRouter,
     BackgroundTasks,
@@ -23,41 +24,82 @@ router = APIRouter()
 MAX_FILE_SIZE = 10 * 1024 * 1024
 
 
+# @router.post(
+#     "/test/upload-audio2",
+#     summary="Verify an audio file of type wav using concurrent.futures ",
+# )
+# async def upload_audio(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+#     file_content = file.content_type.split("/")
+#     if file_content[0] != "audio":
+#         raise HTTPException(
+#             status_code=status.HTTP_400_BAD_REQUEST, detail="Not an audio file"
+#         )
+
+#     if file_content[1] != "wav":
+#         raise HTTPException(
+#             status_code=status.HTTP_400_BAD_REQUEST, detail="Accepted Audio Type - .wav"
+#         )
+
+#     audio_bytes = await file.read()
+
+#     audio_data, sample_rate = sf.read(io.BytesIO(audio_bytes))
+
+#     duration = len(audio_data) / sample_rate
+
+#     if duration > 5:
+#         raise HTTPException(
+#             status_code=400, detail="Audio file must be less than 5 seconds"
+#         )
+
+#     task_id = str(uuid.uuid4())
+
+#     with concurrent.futures.ThreadPoolExecutor() as executor:
+#         future = executor.submit(process_audio_background, audio_data, task_id)
+#         result = future.result()
+#     return {"status": "success", "result": result}
+
+
 @router.post(
     "/test/upload-audio", summary="Verify an audio file of type wav using in-memory"
 )
 async def upload_audio(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
-    file_content = file.content_type.split("/")
-    if file_content[0] != "audio":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Not an audio file"
+    try:
+        file_content = file.content_type.split("/")
+        if file_content[0] != "audio":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Not an audio file"
+            )
+
+        if file_content[1] != "wav":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Accepted Audio Type - .wav",
+            )
+
+        audio_bytes = await file.read()
+
+        audio_data, sample_rate = sf.read(io.BytesIO(audio_bytes))
+
+        duration = len(audio_data) / sample_rate
+
+        if duration > 5:
+            raise HTTPException(
+                status_code=400, detail="Audio file must be less than 5 seconds"
+            )
+
+        task_id = str(uuid.uuid4())
+
+        background_tasks.add_task(process_audio_background, audio_bytes, task_id)
+
+        return BaseResult(
+            status=status.HTTP_200_OK,
+            message="Message Sent to queue",
+            data={"status": "processing", "task_id": task_id},
         )
-
-    if file_content[1] != "wav":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Accepted Audio Type - .wav"
-        )
-
-    audio_bytes = await file.read()
-
-    audio_data, sample_rate = sf.read(io.BytesIO(audio_bytes))
-
-    duration = len(audio_data) / sample_rate
-
-    if duration > 5:
-        raise HTTPException(
-            status_code=400, detail="Audio file must be less than 5 seconds"
-        )
-
-    task_id = str(uuid.uuid4())
-
-    background_tasks.add_task(process_audio_background, audio_bytes, task_id)
-
-    return BaseResult(
-        status=status.HTTP_200_OK,
-        message="Message Sent to queue",
-        data={"status": "processing", "task_id": task_id},
-    )
+    except HTTPException as e:
+        raise e
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @router.get(
@@ -107,36 +149,41 @@ async def get_audio_status(task_id: str):
     "/upload-audio", summary="Verify an audio file of type wav using celery and redis"
 )
 async def verify_audio(file: UploadFile = File(...)):
+    try:
+        if file.content_type.split("/")[0] != "audio":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Not an audio file"
+            )
 
-    if file.content_type.split("/")[0] != "audio":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Not an audio file"
+        if file.content_type.split("/")[1] != "wav":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Accepted Audio Type - .wav",
+            )
+
+        audio_bytes = await file.read()
+
+        audio_data, sample_rate = sf.read(io.BytesIO(audio_bytes))
+
+        duration = len(audio_data) / sample_rate
+
+        if duration > 5:
+            raise HTTPException(
+                status_code=400, detail="Audio file must be less than 5 seconds"
+            )
+
+        task_id = str(uuid.uuid4())
+
+        # Send the audio file for background processing using Celery
+        task = process_audio_task.apply_async(args=[audio_bytes, task_id])
+
+        return BaseResult(
+            status=status.HTTP_200_OK, message="Message Sent to queue", data={task.id}
         )
-
-    if file.content_type.split("/")[1] != "wav":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Accepted Audio Type - .wav"
-        )
-
-    audio_bytes = await file.read()
-
-    audio_data, sample_rate = sf.read(io.BytesIO(audio_bytes))
-
-    duration = len(audio_data) / sample_rate
-
-    if duration > 5:
-        raise HTTPException(
-            status_code=400, detail="Audio file must be less than 5 seconds"
-        )
-
-    task_id = str(uuid.uuid4())
-
-    # Send the audio file for background processing using Celery
-    task = process_audio_task.apply_async(args=[audio_bytes, task_id])
-
-    return BaseResult(
-        status=status.HTTP_200_OK, message="Message Sent to queue", data={task.id}
-    )
+    except HTTPException as e:
+        raise e
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @router.get(
