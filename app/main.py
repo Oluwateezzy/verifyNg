@@ -5,7 +5,7 @@ from app.core.database import Base, engine
 from app.routers import audio, auth, notification, user
 
 
-app = FastAPI(title="VerifyNG API", version="1.0.0")
+app = FastAPI(title="VerifyNG API", version="1.0.0", docs_url="/swagger")
 
 Base.metadata.create_all(bind=engine)
 
