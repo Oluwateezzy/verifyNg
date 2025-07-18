@@ -35,3 +35,4 @@ class Encryptor:
             return unpad(cipher.decrypt(encrypted), AES.block_size).decode("utf-8")
         except Exception:
             return ""
+

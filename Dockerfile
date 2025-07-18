@@ -1,5 +1,5 @@
-# Use official Python image
-FROM python:3.8.0
+# Use official Python image on Bullseye
+FROM python:3.8-bullseye
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y libsndfile1
